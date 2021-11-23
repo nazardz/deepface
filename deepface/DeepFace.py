@@ -1,4 +1,5 @@
 import warnings
+from datetime import datetime
 warnings.filterwarnings("ignore")
 
 import os
@@ -466,7 +467,7 @@ def analyze(img_path, actions = ('emotion', 'age', 'gender', 'race') , models = 
 
 		return resp_obj
 
-def find(img_path, db_path, model_name ='VGG-Face', distance_metric = 'cosine', model = None, enforce_detection = True, detector_backend = 'opencv', align = True, prog_bar = True, normalization = 'base'):
+def find(img_path, db_path, model_name ='VGG-Face', distance_metric = 'cosine', model = None, enforce_detection = True, detector_backend = 'opencv', align = True, prog_bar = True, normalization = 'base', end_timestamp = datetime.now(), start_timestamp=datetime.strptime("2020-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")):
 
 	"""
 	This function applies verification several times and find an identity in a database
@@ -553,8 +554,10 @@ def find(img_path, db_path, model_name ='VGG-Face', distance_metric = 'cosine', 
 			for r, d, f in os.walk(db_path): # r=root, d=directories, f = files
 				for file in f:
 					if ('.jpg' in file.lower()) or ('.png' in file.lower()):
-						exact_path = r + "/" + file
-						employees.append(exact_path)
+						creation_time = os.stat(os.path.join(db_path, file)).st_mtime
+						if end_timestamp >= creation_time >= start_timestamp:
+							exact_path = r + "/" + file
+							employees.append(exact_path)
 
 			if len(employees) == 0:
 				raise ValueError("There is no image in ", db_path," folder! Validate .jpg or .png files exist in this path.")
